@@ -17,7 +17,7 @@ import Joyride, { ACTIONS, CallBackProps } from "react-joyride";
 
 // const version = import.meta.env.PACKAGE_VERSION;
 
-const src = new URL("/assets/hbd2.mp3", import.meta.url).href;
+const src = new URL("/assets/korea-hbd.mp3", import.meta.url).href;
 
 const steps = [
   {
@@ -77,13 +77,13 @@ function App() {
 
   const [playing, setPlaying] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [run, setRun] = useState(true);
+  const [run, setRun] = useState(false);
   const [shareMode, setShareMode] = useState(false);
+  const [speedTime, setSpeedTime] = useState(2);
 
-  const [name, setName] = useState("");
   const nameRef = useRef<HTMLInputElement>(null);
 
-  const visibility = shareMode || playing
+  const visibility = shareMode || playing;
 
   const lightCandle = useCallback(() => setCandleVisible(true), []);
 
@@ -126,6 +126,10 @@ function App() {
     }, 0);
   }, [stopAudio, turnOffTheCandle]);
 
+  const onEnded = useCallback(() => {
+    startAudio();
+  }, []);
+
   const blowCandles = useCallback(async (stream: MediaStream) => {
     try {
       microphoneStreamRef.current = stream;
@@ -145,6 +149,8 @@ function App() {
           dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
         const threshold = 43;
 
+        const speed = Math.round((2 - 2 * (average / threshold)) * 10) / 10;
+        setSpeedTime(speed);
         if (average > threshold) {
           setCandleVisible(false);
         }
@@ -169,16 +175,6 @@ function App() {
     },
     [setRun]
   );
-
-  const onEnded = useCallback(() => { }, []);
-
-  const onKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      setTimeout(() => {
-        nameRef.current ? nameRef.current.blur() : undefined;
-      }, 0);
-    }
-  };
 
   useEffect(() => {
     (async () => {
@@ -213,6 +209,13 @@ function App() {
       setShareMode(true);
     }
   }, []);
+
+  const ua = navigator.userAgent;
+  const device = {
+    iPad: /iPad/.test(ua),
+    iPhone: /iPhone/.test(ua),
+    Android: /Android/.test(ua),
+  };
 
   return (
     <div
@@ -284,18 +287,7 @@ function App() {
       <audio {...{ src, ref: audioRef, preload: "auto", onEnded }} />
 
       <div>
-        <Name
-          {...{
-            ref: nameRef,
-            name,
-            setName,
-            shareMode,
-            playing,
-            run,
-            onKeyPress,
-          }}
-        />
-        <Cake {...{ candleVisible }} />
+        <Cake {...{ candleVisible, speedTime, playing, start, stop }} />
       </div>
 
       <div
@@ -321,7 +313,7 @@ function App() {
       <div
         style={{
           position: "absolute",
-          top: "25%",
+          top: !(device.Android || device.iPhone) ? "25%" : "0%",
           left: "50%",
           transform: "translateX(-50%)",
         }}
@@ -337,41 +329,6 @@ function App() {
           }}
         />
       </div>
-
-      <div
-        style={{
-          position: "absolute",
-          bottom: "1.25%",
-          left: "50%",
-          transform: "translateX(-50%)",
-        }}
-      >
-        <CakeActions
-          {...{
-            run,
-            start,
-            pause,
-            stop,
-            toggleLightCandle,
-            setRun,
-            playing,
-            paused,
-            candleVisible,
-          }}
-        />
-      </div>
-
-      {/* <div
-        style={{
-          position: "absolute",
-          bottom: "0%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "non",
-        }}
-      >
-        {version}
-      </div> */}
     </div>
   );
 }

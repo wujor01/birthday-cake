@@ -62,23 +62,8 @@ any) => {
           style={buttonStyle}
           onClick={toggleLightCandle}
         >
-          {/* {candleVisible ? "Blow out" : "Light"} */}
           {candleVisible ? <TbFlameOff /> : <TbFlame />}
         </button>
-        {!playing ? (
-          <button id="user-guide" style={buttonStyle} onClick={guide}>
-            {/* User guide */}
-            <TbInfoCircleFilled />
-          </button>
-        ) : null}
-        <CopyToClipboard
-          text={[window.location.href, "shared=true"].join("&")}
-          onCopy={() => toast("Copied to clipboard!")}
-        >
-          <button id="share" style={buttonStyle}>
-            <TbShare3 />
-          </button>
-        </CopyToClipboard>
       </Fragment>
     );
   }, [
